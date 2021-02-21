@@ -5,9 +5,11 @@
 ######################################
 
 notebooks/Data/
+notebooks/Figures/
 !*/ignore.txt
 *.mat
 ignore/
+
 
 
 #######################################

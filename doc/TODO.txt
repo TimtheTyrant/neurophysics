@@ -1,0 +1,9 @@
+TODO: bar chart of eigenvalues/moving average spike event pattern at given time t
+TODO: movie of ^that for t in t_values
+
+TODO: PCA >> plot first eigenvector as bar graph using mean spike times, where mean is taken over all spikes event patterns that are:
+1) in the whole trial
+2) in each line cluster from UMAP
+
+TODO: Ask mike if he knows of any Hi-C mapping on the whole marmoset/primate neural transcripome \.
+

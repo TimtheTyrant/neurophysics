@@ -1,0 +1,5 @@
+dask.bag: an unordered set, effectively a distributed replacement for Python iterators, read from text/binary files or from arbitrary Delayed sequences
+dask.array: Distributed arrays with a numpy-like interface, great for scaling large matrix operations
+dask.dataframe: Distributed pandas-like dataframes, for efficient handling of tabular, organized data
+dask_ml: distributed wrappers around scikit-learn-like machine-learning tools
+source: https://www.pluralsight.com/tech-blog/data-processing-with-dask/

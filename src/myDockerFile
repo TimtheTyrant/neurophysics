@@ -1,0 +1,10 @@
+# Start with this image as a "base".
+# It's as if all the commands that created that image were inserted here.
+FROM continuumio/miniconda:4.7.12
+# Use RUN to execute commands inside the image as it is being built up.
+RUN conda install --yes numpy
+# Try to always "clean up" after yourself to reduce the final size of your image.
+RUN apt-get update \
+&& apt-get --yes install --no-install-recommends graphviz\
+&& apt-get --yes clean \
+&& rm -rf /var/lib/apt/lists/*

@@ -29,7 +29,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -142,9 +141,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-######################################
-# Fix Any Edge Cases
-######################################
-
-!*/notebooks/lib/

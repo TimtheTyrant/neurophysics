@@ -35,7 +35,7 @@ def comp_data(nid_self,dict_spike_times,number_of_neurons,t_stim_start,t_stim_en
     t_values=ts-t_stim_start
     return t_values, data
 
-def comp_target(t_values,t_arrival=1.5,t_departure=2.5):
+def comp_target(t_values,t_arrival,t_departure):
     '''classify spikes as before or during the arrival time of the information of the stimulus
     Example Usage:
     target=comp_target(t_values)
@@ -48,8 +48,10 @@ def comp_target(t_values,t_arrival=1.5,t_departure=2.5):
     target=boo_before*0+boo_after*1+boo_ignore*2
     return target
 
-def compute_point_process_data(t_min_considered, number_of_neurons, dict_spike_times, dict_trial_times, dict_trial_data,printing=False,nid_self=None):
-    '''
+def compute_point_process_data(t_min_considered, number_of_neurons,
+    dict_spike_times, dict_trial_times, dict_trial_data,
+    printing=False,nid_self=None,t_arrival=1.5,t_departure=2.5,**kwargs):
+    '''t_min_considered is for the entire set, not for the individual trial.
     Example Usage:
     target,data,trialnum_values,t_values=compute_point_process_data(
         t_min_considered,
@@ -83,7 +85,7 @@ def compute_point_process_data(t_min_considered, number_of_neurons, dict_spike_t
         if (t_stim_start>=t_min_considered):
             try:
                 t_values,data=comp_data(nid_self,dict_spike_times,number_of_neurons,t_stim_start,t_stim_end)
-                target=comp_target(t_values)
+                target=comp_target(t_values,t_arrival=t_arrival,t_departure=t_departure)
                 trialnum_out_lst.append(trialnum+0*target)
                 target_out_lst.append(target)
                 data_out_lst.append(data)

@@ -1,6 +1,7 @@
 import numpy as np
 
-def comp_data(nid_self,dict_spike_times,number_of_neurons,t_stim_start,t_stim_end,printing=False):
+def comp_data(nid_self,dict_spike_times,number_of_neurons,t_stim_start,
+    t_stim_end,printing=False,t_arrival_physical=.15,t_stop=3.):
     #compute the point process matrix for a single trial
     if printing:
         print (f"the stimulus duration was {t_stim_end-t_stim_start:.2f} seconds.")
@@ -15,8 +16,8 @@ def comp_data(nid_self,dict_spike_times,number_of_neurons,t_stim_start,t_stim_en
         print(f'the reference neuron is #{nid_self} as the most spiking neuron.')
     t_self_values=t_values_lst[nid_self]
 
-    t_start=t_stim_start+.15
-    t_end=t_stim_start+3.
+    t_start=t_stim_start+t_arrival_physical
+    t_end=t_stim_start+t_stop
     zeros=np.zeros(number_of_neurons)
     #extract times of self spiking
     boo=(t_self_values>=t_start)&(t_self_values<t_end)
@@ -50,7 +51,10 @@ def comp_target(t_values,t_arrival,t_departure):
 
 def compute_point_process_data(t_min_considered, number_of_neurons,
     dict_spike_times, dict_trial_times, dict_trial_data,
-    printing=False,nid_self=None,t_arrival=1.5,t_departure=2.5,**kwargs):
+    printing=False,nid_self=None,
+    t_arrival=1.5,t_departure=2.5,
+    t_arrival_physical=.15,t_stop=3.,
+    **kwargs):
     '''t_min_considered is for the entire set, not for the individual trial.
     Example Usage:
     target,data,trialnum_values,t_values=compute_point_process_data(
@@ -59,7 +63,10 @@ def compute_point_process_data(t_min_considered, number_of_neurons,
         dict_spike_times,
         dict_trial_times,
         dict_trial_data,
-        printing=True,nid_self=None)
+        printing=True,nid_self=None,
+        t_arrival=1.5,t_departure=2.5,
+        t_arrival_physical=.15,t_stop=3.,
+        **kwargs)
     '''
     if nid_self is None:
         #identify the neuron with the most spikes as nid_self
@@ -84,7 +91,8 @@ def compute_point_process_data(t_min_considered, number_of_neurons,
     for trialnum,t_stim_start,t_stim_end in zip(trialnum_lst,t_stim_start_lst,t_stim_end_lst):
         if (t_stim_start>=t_min_considered):
             try:
-                t_values,data=comp_data(nid_self,dict_spike_times,number_of_neurons,t_stim_start,t_stim_end)
+                t_values,data=comp_data(nid_self,dict_spike_times,number_of_neurons,t_stim_start,t_stim_end,
+                t_arrival_physical=t_arrival_physical,t_stop=t_stop)
                 target=comp_target(t_values,t_arrival=t_arrival,t_departure=t_departure)
                 trialnum_out_lst.append(trialnum+0*target)
                 target_out_lst.append(target)

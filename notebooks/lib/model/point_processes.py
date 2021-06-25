@@ -68,6 +68,7 @@ def compute_point_process_data(t_min_considered, number_of_neurons,
         t_arrival_physical=.15,t_stop=3.,
         **kwargs)
     '''
+    #TODO(later): use all spike times flattened into 1 vector for a (perhaps too massive?) massive dataset...?
     if nid_self is None:
         #identify the neuron with the most spikes as nid_self
         nid_self=0

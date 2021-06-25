@@ -3,7 +3,10 @@
 #date: 6.6.2021
 import numpy as np, os
 
-def parse_spikeTimes(input_fn,scale=1/30000):
+##################
+# Main Utils
+##################
+def parse_spikeTimes(input_fn,scale=1/30000, warnings=True, **kwargs):
     '''
     import data and return it as a dictionary of spike times.
     Example Usage:
@@ -19,6 +22,7 @@ def parse_spikeTimes(input_fn,scale=1/30000):
                 try:
                     val=eval(val)
                     spikes.append(val)
+                # except NameError as ee:
                 except SyntaxError as e:
                     pass
             dict_spike_times[nid]=np.array(spikes[1:])*scale
@@ -26,7 +30,7 @@ def parse_spikeTimes(input_fn,scale=1/30000):
     number_of_neurons=nid
     return number_of_neurons, dict_spike_times
 
-def filter_spikeTimes(number_of_neurons, dict_spike_times, percentile=.95,printing=False):
+def filter_spikeTimes(number_of_neurons, dict_spike_times, percentile=.95,printing=False, **kwargs):
     '''
     import data and return it as a dictionary of spike times.
     Example Usage:
@@ -36,9 +40,11 @@ def filter_spikeTimes(number_of_neurons, dict_spike_times, percentile=.95,printi
     #make map from neuron to t_min,t_max
     t_min_lst=[];t_max_lst=[];nid_lst=[]
     for nid in range(number_of_neurons):
-        t_min_lst.append(np.min(dict_spike_times[nid]))
-        t_max_lst.append(np.max(dict_spike_times[nid]))
-        nid_lst.append(nid)
+        st=dict_spike_times[nid]
+        if len(st)>0:
+            t_min_lst.append(np.min(st))
+            t_max_lst.append(np.max(st))
+            nid_lst.append(nid)
 
     #pick a reasonable set of neurons to not consider
     # np.min(t_min_lst),np.median(t_min_lst),np.max(t_min_lst)
@@ -54,23 +60,25 @@ def filter_spikeTimes(number_of_neurons, dict_spike_times, percentile=.95,printi
     nid_out=0
     dict_spike_times_out=dict()
     for nid in range(number_of_neurons):
-        if np.min(dict_spike_times[nid])<=t_min_considered:
-            # keep_nid_lst.append(nid_out)
-            # keep_spiketimes_lst.append(dict_spike_times[nid])
-            dict_spike_times_out[nid_out]=dict_spike_times[nid]
-            nid_out+=1
-        else:
-            didnt_spike_yet_nid_lst.append(nid)
+        st=dict_spike_times[nid]
+        if (len(st)>0):
+            if (np.min(st)<=t_min_considered):
+                # keep_nid_lst.append(nid_out)
+                # keep_spiketimes_lst.append(dict_spike_times[nid])
+                dict_spike_times_out[nid_out]=st
+                nid_out+=1
+            else:
+                didnt_spike_yet_nid_lst.append(nid)
     num_neurons_out=nid_out
     if printing:
         print(f"this will result in a {num_neurons_out}-dimensional point process.")
     return t_min_considered, num_neurons_out, dict_spike_times_out
 
-def load_spikeTimes(input_fn,percentile=.95,printing=False,**kwargs):
-    number_of_neurons, dict_spike_times=parse_spikeTimes(input_fn)
-    return filter_spikeTimes(number_of_neurons, dict_spike_times, percentile=percentile,printing=printing)
+def load_spikeTimes(input_fn,percentile=.95,**kwargs):
+    number_of_neurons, dict_spike_times=parse_spikeTimes(input_fn,**kwargs)
+    return filter_spikeTimes(number_of_neurons, dict_spike_times, percentile=percentile,**kwargs)
 
-def parse_trialTimes(input_fn):
+def parse_trialTimes(input_fn, warnings=True, **kwargs):
     '''
     import data and return it as a dictionary of stimulus timings.
     Example Usage:
@@ -94,7 +102,7 @@ def parse_trialTimes(input_fn):
     }
     return dict_trialTimes
 
-def parse_trialData(input_fn):
+def parse_trialData(input_fn, **kwargs):
     '''
     import data and return it as a dictionary of trial data/features/labels.
     Example Usage:
@@ -129,7 +137,7 @@ def parse_trialData(input_fn):
     return dict_trial_data
 
 
-def load_dataset(modname,data_folder):
+def load_dataset(modname,data_folder,warnings,printing,**kwargs):
     '''loads a set of trials
     Example Usage:
     data_dir=f"{nb_dir}/Data"
@@ -141,17 +149,67 @@ def load_dataset(modname,data_folder):
     trgt2='trialData.csv'
     trgt3='ChannelNums.csv'
     trgt4='SpikeTimes.csv'
+    #todo(later): implement parsing of ChannelNums.csv
     #parse SpikeTimes.csv
     input_fn=modname+trgt4
-    t_min_considered, number_of_neurons, dict_spike_times=load_spikeTimes(input_fn)
-    print(number_of_neurons)
+    try:
+        t_min_considered, number_of_neurons, dict_spike_times=load_spikeTimes(input_fn,**kwargs)
+    except FileNotFoundError as e:
+        t_min_considered, number_of_neurons, dict_spike_times = None, None, None
+        if warnings:
+            print(f"Warning: File not found: {input_fn}\n\t returning None...")
 
     #parse trialTimes.csv
     input_fn=modname+trgt1
-    dict_trialTimes=parse_trialTimes(input_fn)
+    try:
+        dict_trialTimes=parse_trialTimes(input_fn,**kwargs)
+    except FileNotFoundError as e:
+        dict_trialTimes = None
+        if warnings:
+            print(f"Warning: File not found: {input_fn}\n\t returning None...")
 
     #parse trialData.csv
     input_fn=modname+trgt2
-    dict_trial_data=parse_trialData(input_fn)
+    try:
+        dict_trial_data=parse_trialData(input_fn,**kwargs)
+    except FileNotFoundError as e:
+        dict_trial_data = None
+        if warnings:
+            print(f"Warning: File not found: {input_fn}\n\t returning None...")
 
     return t_min_considered, number_of_neurons, dict_spike_times, dict_trialTimes, dict_trial_data
+
+##################
+# Misc. Utils
+##################
+def parse_for_modname(file):
+    '''parse a modname from file name'''
+    file_name=os.path.basename(file)
+    modname='_'.join(file_name.split('_')[:-1])+'_'
+    return modname
+
+def return_output_modname(modname,trialnum,trial_kwargs,make_output_self_documenting=True):
+    output_modname=modname+f"trial_{trialnum}"
+    if make_output_self_documenting:
+        # make trial output_modname self documenting
+        for key in trial_kwargs.keys():
+            if (key != 'imName')&(key != 'imOff'):
+                value=trial_kwargs[key]
+                if value != 'none':
+                    #append to output_modname
+                    output_modname=output_modname+f'_{key}_{value}'
+    return output_modname
+
+def determine_whether_all_files_were_found(t_min_considered, number_of_neurons, dict_spike_times, dict_trial_times, dict_trial_data):
+    boo_all_files_found  = t_min_considered is not None
+    boo_all_files_found &=number_of_neurons is not None
+    boo_all_files_found &= dict_spike_times is not None
+    boo_all_files_found &= dict_trial_times is not None
+    boo_all_files_found &=  dict_trial_data is not None
+    return boo_all_files_found
+
+def parse_set_number(modname):
+    base_str=os.path.basename(modname).lower()
+    trgt='_set'
+    setnum=eval(base_str[base_str.find(trgt)+len(trgt):].split('_')[0])
+    return setnum

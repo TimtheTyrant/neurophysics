@@ -19,7 +19,12 @@ def get_gaussian_umap_coordinates(data,numdim=2,n_components=2,**kwargs):
     return array
 
 def get_gaussian_umap_xycoordinates(data,**kwargs):
-    array=get_gaussian_umap_coordinates(data,numdim=2,**kwargs)
+    try:
+        array=get_gaussian_umap_coordinates(data,numdim=2,**kwargs)
+    except ValueError as e:
+        print(f"Warning: data.size={data.size} in call to get_gaussian_umap_coordinates. Returning None,None...")
+        print(e)
+        return None,None
     x_values=array[0]
     y_values=array[1]
     return x_values,y_values

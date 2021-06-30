@@ -13,7 +13,12 @@ def fit_hyperbolic_mapper(data,**kwargs):
     return hyperbolic_mapper
 
 def get_hyperbolic_umap_coordinates(data,**kwargs):
-    hyperbolic_mapper=fit_hyperbolic_mapper(data,**kwargs)
+    try:
+        hyperbolic_mapper=fit_hyperbolic_mapper(data,**kwargs)
+    except ValueError as e:
+        print(f"Warning: data.size={data.size} in call to get_hyperbolic_umap_coordinates. Returning None,None,None...")
+        print(e)
+        return None,None,None
     # hyperbolic_mapper = umap.UMAP(output_metric='hyperboloid',**kwargs).fit(data)
     x_values = hyperbolic_mapper.embedding_[:, 0]
     y_values = hyperbolic_mapper.embedding_[:, 1]
